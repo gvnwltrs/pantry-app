@@ -22,6 +22,9 @@ class PantryApp:
 
         self.remove_button = tk.Button(self.root, text="Remove Item", command=self.remove_item)
         self.remove_button.pack(pady=10)
+        
+        self.edit_button = tk.Button(self.root, text="Edit Item", command=self.edit_item)
+        self.edit_button.pack(pady=10)
 
         self.save_button = tk.Button(self.root, text="Save Items", command=self.save_items)
         self.save_button.pack(pady=10)
@@ -29,8 +32,6 @@ class PantryApp:
         self.load_button = tk.Button(self.root, text="Load Items", command=self.load_items)
         self.load_button.pack(pady=10)
 
-        self.edit_button = tk.Button(self.root, text="Edit Item", command=self.edit_item)
-        self.edit_button.pack(pady=10)
 
         self.load_items()
 
