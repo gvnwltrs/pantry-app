@@ -1,8 +1,41 @@
 #!/usr/bin/env python3
 
 import tkinter as tk
-from tkinter import messagebox, simpledialog
+from tkinter import messagebox, simpledialog, Toplevel, Label, Entry, Button
 import pickle
+
+class AddOrEditDialog:
+    def __init__(self, parent, item=None, qty=None):
+        self.top = Toplevel(parent)
+        self.top.title("Add or Edit Item")
+
+        Label(self.top, text="Item Name:").pack(pady=10)
+        self.name_entry = Entry(self.top)
+        self.name_entry.pack(pady=5)
+        if item:
+            self.name_entry.insert(0, item)
+
+        Label(self.top, text="Quantity:").pack(pady=10)
+        self.qty_entry = Entry(self.top)
+        self.qty_entry.pack(pady=5)
+        if qty:
+            self.qty_entry.insert(0, str(qty))
+
+        Button(self.top, text="Submit", command=self.submit).pack(pady=20)
+
+        self.result = None
+
+    def submit(self):
+        item_name = self.name_entry.get().strip()
+        try:
+            item_qty = int(self.qty_entry.get().strip())
+            if item_name:
+                self.result = (item_name, item_qty)
+                self.top.destroy()
+            else:
+                messagebox.showerror("Error", "Item name cannot be empty.")
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid quantity.")
 
 class PantryApp:
     def __init__(self, root):
@@ -35,13 +68,17 @@ class PantryApp:
 
         self.load_items()
 
+    def add_or_edit_item(self, item=None, qty=None):
+        dialog = AddOrEditDialog(self.root, item, qty)
+        self.root.wait_window(dialog.top)
+        return dialog.result
+
     def add_item(self):
-        item = simpledialog.askstring("Input", "Enter the pantry item name:")
-        if item:
-            qty = simpledialog.askinteger("Input", f"Enter quantity for {item}:")
-            if qty:
-                self.pantry_items[item] = qty
-                self.update_listbox()
+        result = self.add_or_edit_item()
+        if result:
+            item_name, item_qty = result
+            self.pantry_items[item_name] = item_qty
+            self.update_listbox()
 
     def remove_item(self):
         selected = self.listbox.curselection()
@@ -75,19 +112,21 @@ class PantryApp:
         if not selected:
             return
         item = self.listbox.get(selected[0]).split(" - ")[0]
+        qty = self.pantry_items[item]
 
-        new_item_name = simpledialog.askstring("Edit Item", f"Edit name of '{item}':", initialvalue=item)
-        if new_item_name is None:  # if the user cancels the edit
-            return
+        result = self.add_or_edit_item(item, qty)
+        if result:
+            new_item_name, new_item_qty = result
 
-        new_item_qty = simpledialog.askinteger("Edit Quantity", f"Edit quantity for '{new_item_name}':", initialvalue=self.pantry_items[item])
-        if new_item_qty is None:  # if the user cancels the edit
-            return
+            if new_item_name != item:
+                del self.pantry_items[item] 
 
-        del self.pantry_items[item]  # remove old item
-        self.pantry_items[new_item_name] = new_item_qty  # add updated item
+            self.pantry_items[new_item_name] = new_item_qty
+            self.update_listbox()
+ 
+    
 
-        self.update_listbox()
+  
 
 if __name__ == "__main__":
     root = tk.Tk()
